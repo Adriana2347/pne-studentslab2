@@ -1,0 +1,3 @@
+In line 11, there is an error of division by 0, because the program didn't check the case when the denominator is 0. We
+can see that the first result is printed because t0 is different form 0. However, the second result is not printed
+because t0 is 0. The last two results are not printed because when there occur an error the program stops.
