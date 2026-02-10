@@ -20,15 +20,18 @@ def count_bases(sequence):
         i += 1
     return [count_a, count_c, count_t, count_g]
 
-seq = input("Enter a valid sequence: ").upper()
-N = count_bases(seq)
-total = total_len(seq)
-print("The total length is:", total)
-print("A", N[0])
-print("C", N[1])
-print("G", N[3])
-print("T", N[2])
+def main():
+    seq = input("Enter a valid sequence: ").upper()
+    N = count_bases(seq)
+    total = total_len(seq)
+    print("The total length is:", total)
+    print("A", N[0])
+    print("C", N[1])
+    print("G", N[3])
+    print("T", N[2])
 
+if __name__ == "__main__":
+    main()
 
 
 
