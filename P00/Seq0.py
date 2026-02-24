@@ -49,7 +49,6 @@ def seq_complement(seq):
         result += complement[base]
     return result
 
-
 def most_bases(count_dict):
     max_bases = max(count_dict, key=count_dict.get)
     return max_bases
