@@ -50,9 +50,5 @@ def seq_complement(seq):
     return result
 
 
-def most_bases(bases_dict):
-    max_bases = bases_dict[0]
-    for b in bases_dict:
-        if b > max_bases:
-            new_max = b
-    return new_max
+def most_bases(count_dict):
+    return max(count_dict.items())
