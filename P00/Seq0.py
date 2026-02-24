@@ -36,12 +36,23 @@ def reverse(seq, n):
     reverse = new_seq[::-1]
     return reverse
 
+
 def seq_complement(seq):
-    i = 0
+    complement = {
+        "A": "T",
+        "T": "A",
+        "C": "G",
+        "G": "C"
+    }
+    result = ""
     for base in seq:
-        if base == "A":
-            result = seq.replace("T")
-        elif base == "C":
-            result = seq.replace("G")
-        i += 1
-    return
+        result += complement[base]
+    return result
+
+
+def most_bases(bases_dict):
+    max_bases = bases_dict[0]
+    for b in bases_dict:
+        if b > max_bases:
+            new_max = b
+    return new_max
