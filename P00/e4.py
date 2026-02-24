@@ -4,15 +4,11 @@ from Seq0 import seq_count_bases
 bases = ["A", "C", "G", "T"]
 
 #Gene ADA
-
-def exercise4(filename):
-    bases = ["A", "C", "G", "T"]
-    seq = seq_read_fasta(filename)
-    for base in bases:
-        total_count = seq_count_bases(seq, base)
-    return base, total_count
 filename = "sequences/ADA.txt"
-print(exercise4(filename))
+seq2 = seq_read_fasta(filename)
+print("ADA:")
+for base in bases:
+    print(base, seq_count_bases(seq2, base))
 
 #Gene fNX
 filename = "sequences/FNX.txt"
