@@ -4,7 +4,7 @@ s1 = Seq()
 s2 = Seq("TATAC")
 s3 = Seq("AGCXTW")
 
-print(f"Sequence: (Length: {len(s1)}) {s1} {s1.count_bases("A")}")
-print(f"Sequence: (Length: {len(s2)}) {s2} {s2.count_bases("A")}")
-print(f"Sequence: (Length: {len(s1)}) {s1} {s1.count_bases("A")}")
+print(f"Sequence: (Length: {s1.len()}) {s1}")
+print(f"Sequence: (Length: {s2.len()}) {s2}")
+print(f"Sequence: (Length: {s3.len()}) {s3}")
 
