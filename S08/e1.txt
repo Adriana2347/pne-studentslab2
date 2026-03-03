@@ -1,0 +1,2 @@
+mobile IP: Wifi, 3march, fuenlabrada, 10.0.43.51
+lab computer: Wire, 3march, fuenlabrada, 212.128.255.103
