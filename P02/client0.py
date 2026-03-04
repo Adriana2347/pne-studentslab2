@@ -6,14 +6,17 @@ class Client:
         self.ip = ip
         self.port = port
 
-
     def __str__(self):
-        return self.ip, self.port
+        return f"Connection to SERVER at: {self.ip}, PORT:{self.port}"
 
     def ping(self):
+        print("OK!")
+
+    def talk(self, message):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.ip, self.port))
-        message = "OK"
         s.send(str.encode(message))
-        response = s.recv(2048)
+        response = s.recv(2048).decode("utf-8")
+        s.close()
         return response
+
