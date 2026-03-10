@@ -5,7 +5,7 @@ EXERCISE = 1
 
 print(f"-----| Practice {PRACTICE}, Exercise {EXERCISE} |------")
 
-IP = "212.128.255.104"
+IP = "212.128.255.26"
 PORT = 8080
 
 c = Client(IP, PORT)

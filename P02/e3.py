@@ -1,7 +1,7 @@
 from client0 import Client
 
 
-IP = "212.128.255.104"
+IP = "212.128.255.26"
 PORT = 8080
 c = Client(IP, PORT)
 # -- Send a message to the server

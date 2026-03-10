@@ -1,7 +1,7 @@
 from Seq1 import Seq
 from client0 import Client
 
-IP = "212.128.255.104"
+IP = "212.128.255.26"
 
 PORT1 = 8080
 PORT2 = 8081
@@ -17,7 +17,6 @@ s.read_fasta(filename)
 sequence = str(s)
 print("Gene FRAT1:", sequence + "...")
 
-# Loop for 10 fragments
 for i in range(10):
     fragment = sequence[i*10:(i+1)*10]
     print("Fragment", i+1, ":", fragment)
