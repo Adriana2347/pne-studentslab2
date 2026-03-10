@@ -1,7 +1,7 @@
 import socket
 
 # Configure the Server's IP and PORT
-PORT = 8081
+PORT2 = 8081
 IP = "212.128.255.104"# it depends on the machine the server is running
 MAX_OPEN_REQUESTS = 5
 
@@ -11,14 +11,14 @@ number_con = 0
 # create an INET, STREAMing socket
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
-    serversocket.bind((IP, PORT))
+    serversocket.bind((IP, PORT2))
     # become a server socket
     # MAX_OPEN_REQUESTS connect requests before refusing outside connections
     serversocket.listen(MAX_OPEN_REQUESTS)
 
     while True:
         # accept connections from outside
-        print("Waiting for connections at {}, {} ".format(IP, PORT))
+        print("Waiting for connections at {}, {} ".format(IP, PORT2))
         (clientsocket, address) = serversocket.accept()
 
         # Another connection!e
@@ -39,7 +39,7 @@ try:
         clientsocket.close()
 
 except socket.error:
-    print("Problems using ip {} port {}. Is the IP correct? Do you have port permission?".format(IP, PORT))
+    print("Problems using ip {} port {}. Is the IP correct? Do you have port permission?".format(IP, PORT2))
 
 except KeyboardInterrupt:
     print("Server stopped by the user")

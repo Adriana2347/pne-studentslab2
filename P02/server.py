@@ -4,7 +4,6 @@ import socket
 PORT = 8080
 IP = "212.128.255.104"# it depends on the machine the server is running
 MAX_OPEN_REQUESTS = 5
-
 # Counting the number of connections
 number_con = 0
 
