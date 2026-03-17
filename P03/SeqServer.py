@@ -67,6 +67,27 @@ while True:
                 print(f"{base} : {value} ({percentage})")
                 response += f"{base} : {value} ({percentage})\n"
 
+        if msg_final[0] == "COMP":
+            print(msg_final[0])
+            s = Seq(msg_final[1])
+            complement = s.complement()
+            response = complement
+            print(response)
+
+        if msg_final[0] == "REV":
+            print(msg_final[0])
+            s = Seq(msg_final[1])
+            reverse = s.reverse()
+            response = reverse
+            print(response)
+
+        if msg_final[0] == "GENE":
+            print(msg_final[0])
+            gene = msg_final[1]
+            s = Seq()
+            s.read_fasta(f"sequences/{gene}.txt")
+            response = f"{s.strbases}\n"
+            print(response)
 
 
         cs.send(response.encode())
