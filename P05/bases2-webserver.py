@@ -9,6 +9,7 @@ socketserver.TCPServer.allow_reuse_address = True
 class TestHandler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
+
         file = self.path.strip("/")
         if file == "" or file == "/index.html":
             filename = "html/index.html"
