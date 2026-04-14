@@ -14,7 +14,6 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
 
-
         url_path = urlparse(self.path)
         path = url_path.path  # we get it from here
         arguments = parse_qs(url_path.query)
@@ -28,6 +27,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 body = f.read()
             self.send_response(200)
         elif path == "/echo":
+
             message = arguments.get("message", [""])[0]
             body = f"""
                         <html>
@@ -55,13 +55,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         return
 
 
-# ------------------------
-# - Server MAIN program
-# ------------------------
-# -- Set the new handler
 Handler = TestHandler
-
-# -- Open the socket server
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
 
     print("Serving at PORT", PORT)
