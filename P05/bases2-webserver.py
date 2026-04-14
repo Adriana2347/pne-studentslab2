@@ -10,12 +10,17 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
         file = self.path.strip("/")
-        if file == "/" or file == "/index.html":
+        if file == "" or file == "/index.html":
             filename = "html/index.html"
-        else:
+        elif file.startswith("info/"):
             filename = "html/" + file
+        else:
+            if "." not in file:
+                file += ".html"
+            filename = "html/info/" + file
+
         try:
-                with open(filename, "r", encoding="utf-8") as f:
+             with open(filename, "r", encoding="utf-8") as f:
                     body = f.read()
                     self.send_response(200)
 
@@ -27,7 +32,8 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         self.send_header('Content-Type', 'text/html')
         self.send_header('Content-Length', len(body))
         self.end_headers()
-        self.wfile.write(body.encode())
+        self.wfile.write(body.encode("utf-8"))
+
         return
 
 
