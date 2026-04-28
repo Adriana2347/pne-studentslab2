@@ -63,16 +63,11 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             self.send_response(200)
 
 
-
-
-
         else:
             filename = "html/error.html"
             with open(filename, "r", encoding="utf-8") as f:
                 body = f.read()
             self.send_response(404)
-
-
 
         termcolor.cprint(self.requestline, 'green')
         self.send_header('Content-Type', 'text/html')

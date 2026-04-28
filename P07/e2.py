@@ -19,6 +19,7 @@ for gene in genes:
     conn.request("GET", final_parameter)
     response = conn.getresponse()
     data = json.loads(response.read().decode())
+    new_url = "rest.ensembl.org" + "/lookup/symbol/human/" + gene + "?content-type=application/json"
     if "id" in data:
         genes_dict[gene] = data["id"]
 print(genes_dict)
