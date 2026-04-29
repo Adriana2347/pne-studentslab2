@@ -33,6 +33,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         url_path = urlparse(self.path)
         path = url_path.path
         arguments = parse_qs(url_path.query)
+        print(arguments)
 
         file = path.strip("/")
         if file == "" or file == "index.html":
@@ -63,8 +64,15 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             self.send_response(200)
 
         elif path == "/karyotype":
-            specie = arguments["specie"][0]
-            url = specie
+            specie = str(arguments["limit"][0])
+            url2 = "/info/assembly/" + specie
+            data = client_request(url2)
+            name_chromosomes = json.loads(data)
+            chromosome_list = []
+            if "name" in name_chromosomes:
+                chromosome_list.append(name_chromosomes["name"])
+            body = self.read_html_file("chromosomes.html").render(context={"Chromosome": chromosome_list})
+            self.send_response(200)
 
 
         else:
