@@ -5,9 +5,20 @@ from urllib.parse import parse_qs, urlparse
 import termcolor
 from pathlib import Path
 import http.client
+import json
 
 
 PORT = 8080
+
+
+def client_request(url):
+    conn = http.client.HTTPSConnection("rest.ensembl.org")
+    conn.request("GET", url+"?content-type=application/json")
+    response = conn.getresponse()
+    data = response.read().decode("utf-8")
+
+    conn.close()
+    return data
 
 socketserver.TCPServer.allow_reuse_address = True
 class TestHandler(http.server.BaseHTTPRequestHandler):
@@ -23,8 +34,6 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         path = url_path.path
         arguments = parse_qs(url_path.query)
 
-        print(path)
-
         file = path.strip("/")
         if file == "" or file == "index.html":
             filename = "html/index.html"
@@ -34,24 +43,38 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 
         elif path == "/listSpecies":
             limit = arguments["limit"][0]
-            i = 0
-            species_list = {}
-            while i < limit:
-                for specie in species:
-                    if "common_name" in specie:
-                        i += 1
-                        species_list += specie["common_name"]
-                        body = self.read_html_file("html/list_species.html").render(context={"Text": "The server is alive!"})
-            self.send_response(200)
-        termcolor.cprint(self.requestline, 'green')
+            if limit is None or limit == "":
+                new_limit = None
+            else:
+                new_limit = int(limit)
 
+            url = "/info/species"
+            data = client_request(url)
+            species = json.loads(data)
+            species_list = []
+            name = species.get("common_name") or species.get("name")
+            for specie in species:
+                if name in specie:
+                    species_list.append(specie[name])
+                    if new_limit is not None and len(species_list) >= new_limit:
+                        break
+
+            body = self.read_html_file("list_species.html").render(context={"Sequence": species_list,"Limit": new_limit})
+            self.send_response(200)
+
+        elif path == "/karyotype":
+            specie = arguments["specie"][0]
+            url = specie
+
+
+        else:
+            self.send_response(404)
+            body = "404 Not Found"
+
+        termcolor.cprint(self.requestline, 'green')
         self.send_header('Content-Type', 'text/html')
         self.send_header('Content-Length', str(len(body.encode("utf-8"))))
-
-            # The header is finished
         self.end_headers()
-
-            # Send the response message
         self.wfile.write(body.encode("utf-8"))
 
         return
@@ -62,11 +85,8 @@ Handler = TestHandler
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
 
     print("Serving at PORT", PORT)
-
-        # -- Main loop: Attend the client. Whenever there is a new
-        # -- clint, the handler is called
     try:
-            httpd.serve_forever()
+        httpd.serve_forever()
     except KeyboardInterrupt:
         print("")
         print("Stopped by the user")
