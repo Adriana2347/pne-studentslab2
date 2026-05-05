@@ -6,6 +6,7 @@ import termcolor
 from pathlib import Path
 import http.client
 import json
+from Seq1 import Seq
 
 
 PORT = 8080
@@ -50,7 +51,6 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 new_limit = None
             else:
                 new_limit = int(limit)
-
             url = "/info/species"
             data = client_request(url)
             species = json.loads(data)
@@ -113,7 +113,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             gene_id = json.loads(data)
             if "id" in gene_id:
                 id_gene = gene_id["id"]
-                url4 = "sequence/id" + id_gene
+                url4 = "sequence/id/" + id_gene
                 data2 = client_request(url4)
                 seq = json.loads(data2)
                 if "seq" in seq:
@@ -126,6 +126,32 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 body = "404 Not Found"
+        elif path == "/geneInfo":
+            gene = arguments["gene"][0]
+            url3 = "lookup/symbol/homo_sapiens/" + gene
+            data = client_request(url3)
+            gene_id = json.loads(data)
+            if "id" in gene_id:
+                id_gene = gene_id["id"]
+                url5 = "lookup/id/" + id_gene
+                data = client_request(url5)
+                gene_info = json.loads(data)
+                if "start" in gene_info:
+                    start = gene_info["start"]
+                elif "end" in gene_info:
+                    end = gene_info["end"]
+                elif "seq_region_name" in gene_info:
+                    chromosome = gene_info["seq_region_name"]
+            body = self.read_html_file("geneSeq.html").render(context={"end": end, "start": start, "chromosome": chromosome})
+            self.send_response(200)
+
+        elif path == "/geneCalc":
+            gene = arguments["gene"][0]
+
+
+
+
+
 
 
 
