@@ -76,7 +76,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 
         elif path == "/chromosomeLength":
             specie = arguments["species"][0]
-            chromo = arguments["chromo"][0]
+            chromo = arguments["chromo"][1]
             url2 = "/info/assembly/" + specie
             data = client_request(url2)
             name_chromosomes = json.loads(data)
