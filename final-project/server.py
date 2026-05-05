@@ -35,6 +35,8 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         arguments = parse_qs(url_path.query)
         print(arguments)
 
+        body = "ninguna de las anteriores"
+
         file = path.strip("/")
         if file == "" or file == "index.html":
             filename = "html/index.html"
@@ -76,7 +78,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 
         elif path == "/chromosomeLength":
             specie = arguments["species"][0]
-            chromo = arguments["chromo"][1]
+            chromo = arguments["chromo"][0]
             url2 = "/info/assembly/" + specie
             data = client_request(url2)
             name_chromosomes = json.loads(data)
@@ -87,8 +89,45 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                         length.append(region["length"])
             if not length:
                 length = "Chromosome not found"
-                body = self.read_html_file("chromo_l.html").render(context={"length": length})
+
+            body = self.read_html_file("chromo_l.html").render(context={"length": length})
+            self.send_response(200)
+
+        elif path == "/geneLookup":
+            gene = arguments["gene"][0]
+            url3 = "lookup/symbol/homo_sapiens/" + gene
+            data = client_request(url3)
+            gene_id = json.loads(data)
+            if "id" in gene_id:
+                id_gene = gene_id["id"]
+                body = self.read_html_file("gene_id.html").render(context={"id": id_gene})
                 self.send_response(200)
+            else:
+                self.send_response(404)
+                body = "404 Not Found"
+
+        elif path == "/geneSeq":
+            gene = arguments["gene"][0]
+            url3 = "lookup/symbol/homo_sapiens/" + gene
+            data = client_request(url3)
+            gene_id = json.loads(data)
+            if "id" in gene_id:
+                id_gene = gene_id["id"]
+                url4 = "sequence/id" + id_gene
+                data2 = client_request(url4)
+                seq = json.loads(data2)
+                if "seq" in seq:
+                    sequence = seq["seq"]
+                    body = self.read_html_file("geneSeq.html").render(context={"sequence": sequence})
+                    self.send_response(200)
+                else:
+                    self.send_response(404)
+                    body = "404 Not Found"
+            else:
+                self.send_response(404)
+                body = "404 Not Found"
+
+
 
         else:
             self.send_response(404)
