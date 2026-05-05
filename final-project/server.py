@@ -100,7 +100,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             gene_id = json.loads(data)
             if "id" in gene_id:
                 id_gene = gene_id["id"]
-                body = self.read_html_file("gene_id.html").render(context={"id": id_gene})
+                body = self.read_html_file("gene_id.html").render(context={"id": id_gene, "gene":gene})
                 self.send_response(200)
             else:
                 self.send_response(404)
@@ -118,7 +118,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 seq = json.loads(data2)
                 if "seq" in seq:
                     sequence = seq["seq"]
-                    body = self.read_html_file("geneSeq.html").render(context={"sequence": sequence})
+                    body = self.read_html_file("geneSeq.html").render(context={"sequence": sequence, "gene": gene})
                     self.send_response(200)
                 else:
                     self.send_response(404)
