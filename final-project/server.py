@@ -64,16 +64,31 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             self.send_response(200)
 
         elif path == "/karyotype":
-            specie = str(arguments["limit"][0])
+            specie = arguments["species"][0]
             url2 = "/info/assembly/" + specie
             data = client_request(url2)
             name_chromosomes = json.loads(data)
             chromosome_list = []
-            if "name" in name_chromosomes:
-                chromosome_list.append(name_chromosomes["name"])
+            if "karyotype" in name_chromosomes:
+                chromosome_list.append(name_chromosomes["karyotype"])
             body = self.read_html_file("chromosomes.html").render(context={"Chromosome": chromosome_list})
             self.send_response(200)
 
+        elif path == "/chromosomeLength":
+            specie = arguments["species"][0]
+            chromo = arguments["chromo"][0]
+            url2 = "/info/assembly/" + specie
+            data = client_request(url2)
+            name_chromosomes = json.loads(data)
+            length = []
+            if "top_level_region" in name_chromosomes:
+                for region in name_chromosomes["top_level_region"]:
+                    if region["name"] == chromo:
+                        length.append(region["length"])
+            if not length:
+                length = "Chromosome not found"
+                body = self.read_html_file("chromo_l.html").render(context={"length": length})
+                self.send_response(200)
 
         else:
             self.send_response(404)
