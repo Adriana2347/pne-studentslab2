@@ -138,22 +138,35 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 gene_info = json.loads(data)
                 if "start" in gene_info:
                     start = gene_info["start"]
-                elif "end" in gene_info:
+                if "end" in gene_info:
                     end = gene_info["end"]
-                elif "seq_region_name" in gene_info:
+                if "seq_region_name" in gene_info:
                     chromosome = gene_info["seq_region_name"]
-            body = self.read_html_file("geneSeq.html").render(context={"end": end, "start": start, "chromosome": chromosome})
+                if start is not None and end is not None:
+                    length = end - start
+            body = self.read_html_file("gene_info.html").render(context={"end": end, "start": start, "chromosome": chromosome, "length": length})
             self.send_response(200)
 
         elif path == "/geneCalc":
             gene = arguments["gene"][0]
-
-
-
-
-
-
-
+            url3 = "lookup/symbol/homo_sapiens/" + gene
+            data = client_request(url3)
+            gene_id = json.loads(data)
+            if "id" in gene_id:
+                id_gene = gene_id["id"]
+                url4 = "sequence/id/" + id_gene
+                data2 = client_request(url4)
+                seq = json.loads(data2)
+                if "seq" in seq:
+                    sequence = seq["seq"]
+                    s = Seq(sequence)
+                    total_bases = s.count()
+                    total_len = s.len()
+                    porcentage = {}
+                    for base, quantity in total_bases.items():
+                        porcentage[base] = (quantity / total_len) * 100
+                    body = self.read_html_file("geneSeq.html").render(context={"length": total_len, "bases": total_bases, "percentage": porcentage})
+                    self.send_response(200)
 
         else:
             self.send_response(404)
