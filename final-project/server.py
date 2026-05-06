@@ -172,6 +172,9 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             end = arguments["end"][0]
             chromo = arguments["chromo"][0]
 
+            result_list = []
+
+
 
         else:
             self.send_response(404)
