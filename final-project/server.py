@@ -164,9 +164,14 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                     total_len = s.len()
                     porcentage = {}
                     for base, quantity in total_bases.items():
-                        porcentage[base] = (quantity / total_len) * 100
-                    body = self.read_html_file("geneSeq.html").render(context={"length": total_len, "bases": total_bases, "percentage": porcentage})
+                        porcentage[base] = round((quantity / total_len) * 100, 2)
+                    body = self.read_html_file("gene_calc.html").render(context={"length": total_len, "bases": total_bases, "percentage": porcentage})
                     self.send_response(200)
+        elif path == "/geneList":
+            start = arguments["start"][0]
+            end = arguments["end"][0]
+            chromo = arguments["chromo"][0]
+
 
         else:
             self.send_response(404)
