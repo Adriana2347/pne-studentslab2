@@ -126,6 +126,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 body = "404 Not Found"
+
         elif path == "/geneInfo":
             gene = arguments["gene"][0]
             url3 = "lookup/symbol/homo_sapiens/" + gene
