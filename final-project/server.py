@@ -172,10 +172,16 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             start = arguments["start"][0]
             end = arguments["end"][0]
             chromo = arguments["chromo"][0]
-
             result_list = []
-
-
+            url6 = "/overlap/human/region" + chromo + ":" + start + "-" + end
+            print(url6)
+            data = client_request(url6)
+            gene_identified = json.loads(data)
+            for gen in gene_identified:
+                gene_name = gen["external_name"]
+            result_list.append(gene_name)
+            body = self.read_html_file("gene_list.html").render(context={"result_list": result_list})
+            self.send_response(200)
 
         else:
             self.send_response(404)
