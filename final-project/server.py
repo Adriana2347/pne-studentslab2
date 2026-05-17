@@ -179,7 +179,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             gene_identified = json.loads(data)
             for gen in gene_identified:
                 gene_name = gen["external_name"]
-            result_list.append(gene_name)
+                result_list.append(gene_name)
             body = self.read_html_file("gene_list.html").render(context={"result_list": result_list})
             self.send_response(200)
 
