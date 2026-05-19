@@ -13,13 +13,16 @@ PORT = 8080
 
 
 def client_request(url):
-    conn = http.client.HTTPSConnection("rest.ensembl.org")
-    conn.request("GET", url+"?content-type=application/json")
-    response = conn.getresponse()
-    data = response.read().decode("utf-8")
-
-    conn.close()
-    return data
+        conn = http.client.HTTPSConnection("rest.ensembl.org")
+        if "?" in url:
+            final_url = url + "&content-type=application/json"
+        else:
+            final_url = url + "?content-type=application/json"
+        conn.request("GET", final_url)
+        response = conn.getresponse()
+        data = response.read().decode("utf-8")
+        conn.close()
+        return data
 
 socketserver.TCPServer.allow_reuse_address = True
 class TestHandler(http.server.BaseHTTPRequestHandler):
@@ -51,141 +54,205 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 new_limit = None
             else:
                 new_limit = int(limit)
-            url = "/info/species"
-            data = client_request(url)
-            species = json.loads(data)
-            species_list = []
-            name = species.get("common_name") or species.get("name")
-            for specie in species:
-                if name in specie:
-                    species_list.append(specie[name])
+                url = "/info/species"
+                data = client_request(url)
+                species = json.loads(data)
+                species_list = []
+                for specie in species["species"]:
+                    if "common_name" in specie:
+                        species_list.append(specie["common_name"])
+                    else:
+                        species_list.append(specie["name"])
                     if new_limit is not None and len(species_list) >= new_limit:
                         break
-
-            body = self.read_html_file("list_species.html").render(context={"Sequence": species_list,"Limit": new_limit})
-            self.send_response(200)
+                species_list = ", ".join(species_list)
+                body = self.read_html_file("list_species.html").render(context={"Sequence": species_list, "Limit": new_limit})
+                self.send_response(200)
 
         elif path == "/karyotype":
-            specie = arguments["species"][0]
-            url2 = "/info/assembly/" + specie
-            data = client_request(url2)
-            name_chromosomes = json.loads(data)
-            chromosome_list = []
-            if "karyotype" in name_chromosomes:
-                chromosome_list.append(name_chromosomes["karyotype"])
-            body = self.read_html_file("chromosomes.html").render(context={"Chromosome": chromosome_list})
-            self.send_response(200)
-
-        elif path == "/chromosomeLength":
-            specie = arguments["species"][0]
-            chromo = arguments["chromo"][0]
-            url2 = "/info/assembly/" + specie
-            data = client_request(url2)
-            name_chromosomes = json.loads(data)
-            length = []
-            if "top_level_region" in name_chromosomes:
-                for region in name_chromosomes["top_level_region"]:
-                    if region["name"] == chromo:
-                        length.append(region["length"])
-            if not length:
-                length = "Chromosome not found"
-
-            body = self.read_html_file("chromo_l.html").render(context={"length": length})
-            self.send_response(200)
-
-        elif path == "/geneLookup":
-            gene = arguments["gene"][0]
-            url3 = "lookup/symbol/homo_sapiens/" + gene
-            data = client_request(url3)
-            gene_id = json.loads(data)
-            if "id" in gene_id:
-                id_gene = gene_id["id"]
-                body = self.read_html_file("gene_id.html").render(context={"id": id_gene, "gene":gene})
-                self.send_response(200)
-            else:
-                self.send_response(404)
-                body = "404 Not Found"
-
-        elif path == "/geneSeq":
-            gene = arguments["gene"][0]
-            url3 = "lookup/symbol/homo_sapiens/" + gene
-            data = client_request(url3)
-            gene_id = json.loads(data)
-            if "id" in gene_id:
-                id_gene = gene_id["id"]
-                url4 = "sequence/id/" + id_gene
-                data2 = client_request(url4)
-                seq = json.loads(data2)
-                if "seq" in seq:
-                    sequence = seq["seq"]
-                    body = self.read_html_file("geneSeq.html").render(context={"sequence": sequence, "gene": gene})
+            try:
+                specie = arguments["species"][0]
+                url2 = "/info/assembly/" + specie
+                data = client_request(url2)
+                name_chromosomes = json.loads(data)
+                if "karyotype" in  name_chromosomes:
+                    chromosome_list = name_chromosomes["karyotype"]
+                    chromosome_list = ", ".join(chromosome_list)
+                    body = self.read_html_file("chromosomes.html").render(context={"Chromosome": chromosome_list})
                     self.send_response(200)
                 else:
+                    body = self.read_html_file("error.html").render(context={"error": "Karyotype not found"})
+                    self.send_response(400)
+            except Exception as error:
+                body = self.read_html_file("error.html").render(
+                    context={"error": str(error)})
+                self.send_response(500)
+
+        elif path == "/chromosomeLength":
+            try:
+                specie = arguments["species"][0]
+                chromo = arguments["chromo"][0]
+                url2 = "/info/assembly/" + specie
+                data = client_request(url2)
+                name_chromosomes = json.loads(data)
+                if "top_level_region" not in name_chromosomes:
+                    body = self.read_html_file("error.html").render(context={"error": "Species not found"})
                     self.send_response(404)
-                    body = "404 Not Found"
-            else:
-                self.send_response(404)
-                body = "404 Not Found"
+                else:
+                    length = None
+                    for region in name_chromosomes["top_level_region"]:
+                        if region["name"] == chromo:
+                            length = region["length"]
+                            break
+                    if length is None:
+                        body = self.read_html_file("error.html").render(
+                            context={"error": "Chromosome not found"})
+                        self.send_response(404)
+                    else:
+                        body = self.read_html_file("chromo_l.html").render(context={"length": length})
+                        self.send_response(200)
+
+            except Exception as error:
+                body = self.read_html_file("error.html").render(
+                    context={"error": str(error)})
+                self.send_response(500)
+
+        elif path == "/geneLookup":
+            try:
+                gene = arguments["gene"][0]
+                url3 = "lookup/symbol/homo_sapiens/" + gene
+                data = client_request(url3)
+                gene_id = json.loads(data)
+                if "id" in gene_id:
+                    id_gene = gene_id["id"]
+                    body = self.read_html_file("gene_id.html").render(context={"id": id_gene, "gene":gene})
+                    self.send_response(200)
+                else:
+                    body = self.read_html_file("error.html").render(context={"error": "Species not found"})
+                    self.send_response(400)
+
+            except Exception as error:
+                body = self.read_html_file("error.html").render(
+                    context={"error": str(error)})
+                self.send_response(500)
+
+        elif path == "/geneSeq":
+            try:
+                gene = arguments["gene"][0]
+                url3 = "lookup/symbol/homo_sapiens/" + gene
+                data = client_request(url3)
+                gene_id = json.loads(data)
+                if "id" in gene_id:
+                    id_gene = gene_id["id"]
+                    url4 = "sequence/id/" + id_gene
+                    data2 = client_request(url4)
+                    seq = json.loads(data2)
+                    if "seq" in seq:
+                        sequence = seq["seq"]
+                        body = self.read_html_file("geneSeq.html").render(context={"sequence": sequence, "gene": gene})
+                        self.send_response(200)
+                    else:
+                        body = self.read_html_file("error.html").render(context={"error": "Species not found"})
+                        self.send_response(400)
+
+                else:
+                    body = self.read_html_file("error.html").render(context={"error": "Species not found"})
+                    self.send_response(400)
+
+
+            except Exception as error:
+                body = self.read_html_file("error.html").render(
+                    context={"error": str(error)})
+                self.send_response(500)
 
         elif path == "/geneInfo":
-            gene = arguments["gene"][0]
-            url3 = "lookup/symbol/homo_sapiens/" + gene
-            data = client_request(url3)
-            gene_id = json.loads(data)
-            if "id" in gene_id:
-                id_gene = gene_id["id"]
-                url5 = "lookup/id/" + id_gene
-                data = client_request(url5)
-                gene_info = json.loads(data)
-                if "start" in gene_info:
-                    start = gene_info["start"]
-                if "end" in gene_info:
-                    end = gene_info["end"]
-                if "seq_region_name" in gene_info:
-                    chromosome = gene_info["seq_region_name"]
-                if start is not None and end is not None:
-                    length = end - start
-            body = self.read_html_file("gene_info.html").render(context={"end": end, "start": start, "chromosome": chromosome, "length": length})
-            self.send_response(200)
+            try:
+                gene = arguments["gene"][0]
+                url3 = "lookup/symbol/homo_sapiens/" + gene
+                data = client_request(url3)
+                gene_id = json.loads(data)
+                if "id" in gene_id:
+                    id_gene = gene_id["id"]
+                    url5 = "lookup/id/" + id_gene
+                    data = client_request(url5)
+                    gene_info = json.loads(data)
+                    if "start" in gene_info:
+                        start = gene_info["start"]
+                    if "end" in gene_info:
+                        end = gene_info["end"]
+                    if "seq_region_name" in gene_info:
+                        chromosome = gene_info["seq_region_name"]
+                    if start is not None and end is not None:
+                        length = end - start
+                        body = self.read_html_file("gene_info.html").render(context={"end": end, "start": start, "chromosome": chromosome, "length": length})
+                        self.send_response(200)
+                else:
+                    body = self.read_html_file("error.html").render(context={"error": "Species not found"})
+                    self.send_response(400)
+            except Exception as error:
+                body = self.read_html_file("error.html").render(
+                    context={"error": str(error)})
+                self.send_response(500)
+
+
 
         elif path == "/geneCalc":
-            gene = arguments["gene"][0]
-            url3 = "lookup/symbol/homo_sapiens/" + gene
-            data = client_request(url3)
-            gene_id = json.loads(data)
-            if "id" in gene_id:
-                id_gene = gene_id["id"]
-                url4 = "sequence/id/" + id_gene
-                data2 = client_request(url4)
-                seq = json.loads(data2)
-                if "seq" in seq:
-                    sequence = seq["seq"]
-                    s = Seq(sequence)
-                    total_bases = s.count()
-                    total_len = s.len()
-                    porcentage = {}
-                    for base, quantity in total_bases.items():
-                        porcentage[base] = round((quantity / total_len) * 100, 2)
-                    body = self.read_html_file("gene_calc.html").render(context={"length": total_len, "bases": total_bases, "percentage": porcentage})
-                    self.send_response(200)
+            try:
+                gene = arguments["gene"][0]
+                url3 = "lookup/symbol/homo_sapiens/" + gene
+                data = client_request(url3)
+                gene_id = json.loads(data)
+                if "id" in gene_id:
+                    id_gene = gene_id["id"]
+                    url4 = "sequence/id/" + id_gene
+                    data2 = client_request(url4)
+                    seq = json.loads(data2)
+                    if "seq" in seq:
+                        sequence = seq["seq"]
+                        s = Seq(sequence)
+                        total_bases = s.count()
+                        total_len = s.len()
+                        porcentage = {}
+                        for base, quantity in total_bases.items():
+                            porcentage[base] = round((quantity / total_len) * 100, 2)
+                        body = self.read_html_file("gene_calc.html").render(context={"length": total_len, "bases": total_bases, "percentage": porcentage})
+                        self.send_response(200)
+                else:
+                    body = self.read_html_file("error.html").render(context={"error": "Species not found"})
+                    self.send_response(400)
+            except Exception as error:
+                body = self.read_html_file("error.html").render(
+                    context={"error": str(error)})
+                self.send_response(500)
+
         elif path == "/geneList":
-            start = arguments["start"][0]
-            end = arguments["end"][0]
-            chromo = arguments["chromo"][0]
-            result_list = []
-            url6 = "/overlap/human/region" + chromo + ":" + start + "-" + end
-            print(url6)
-            data = client_request(url6)
-            gene_identified = json.loads(data)
-            for gen in gene_identified:
-                gene_name = gen["external_name"]
-                result_list.append(gene_name)
-            body = self.read_html_file("gene_list.html").render(context={"result_list": result_list})
-            self.send_response(200)
+            try:
+                start = arguments["start"][0]
+                end = arguments["end"][0]
+                chromo = arguments["chromo"][0]
+                result_list = []
+                url6 = f"/overlap/region/human/{chromo}:{start}-{end}?feature=gene"
+                data = client_request(url6)
+                gene_identified = json.loads(data)
+                if not gene_identified:
+                    body = self.read_html_file("error.html").render(context={"error": "Species not found"})
+                    self.send_response(400)
+                else:
+                    for gen in gene_identified:
+                        if "external_name" in gen:
+                            gene_name = gen["external_name"]
+                            result_list.append(gene_name)
+                        result_list = ", ".join(result_list)
+                        body = self.read_html_file("gene_list.html").render(context={"result_list": result_list})
+                        self.send_response(200)
+            except Exception as error:
+                body = self.read_html_file("error.html").render(
+                    context={"error": str(error)})
+                self.send_response(500)
 
         else:
-            self.send_response(404)
-            body = "404 Not Found"
+            body = self.read_html_file("error.html").render(context={"error": "Species not found"})
+            self.send_response(400)
 
         termcolor.cprint(self.requestline, 'green')
         self.send_header('Content-Type', 'text/html')
